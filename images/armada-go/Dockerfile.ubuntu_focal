@@ -1,0 +1,38 @@
+ARG FROM=ubuntu:20.04
+ARG GO_IMAGE=golang:1.20.5-buster
+FROM ${GO_IMAGE} as builder
+
+ENV PATH "/usr/local/go/bin:$PATH"
+ENV CGO_ENABLED=0
+WORKDIR /go/src/
+COPY go.mod /go.sum ./
+RUN go mod download
+COPY . ./
+RUN go build -v -o /usr/local/bin/armada-go ./
+
+FROM ${FROM} as release
+
+LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode' \
+      org.opencontainers.image.url='https://airshipit.org' \
+      org.opencontainers.image.documentation='https://docs.airshipit.org/armada-go' \
+      org.opencontainers.image.source='https://opendev.org/airship/armada-go' \
+      org.opencontainers.image.vendor='The Airship Authors' \
+      org.opencontainers.image.licenses='Apache-2.0'
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+EXPOSE 8000
+
+WORKDIR /armada
+COPY --from=builder /usr/local/bin/armada-go /usr/local-bin/armada
+COPY crd.yaml /armada/crd.yaml
+
+# Add armada user
+RUN useradd -u 1000 -g users -d $(pwd) armada
+
+ENTRYPOINT ["/usr/local/bin/armada"]
+CMD ["server"]
+
+USER armada
