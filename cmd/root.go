@@ -65,6 +65,7 @@ func NewRootCommand(out io.Writer) (*cobra.Command, *RootOptions) {
 func AddDefaultArmadaCommands(cmd *cobra.Command, factory cfg.Factory) *cobra.Command {
 	cmd.AddCommand(NewServerCommand(factory))
 	cmd.AddCommand(NewApplyCommand(factory))
+	cmd.AddCommand(NewWaitCommand(factory))
 
 	return cmd
 }

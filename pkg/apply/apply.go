@@ -45,8 +45,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"opendev.org/airship/armada-go/pkg/config"
-	armadawait "opendev.org/airship/armada-go/pkg/wait"
 	armadav1 "opendev.org/airship/armada-operator/api/v1"
+	armadawait "opendev.org/airship/armada-operator/pkg/waitutil"
 )
 
 // RunCommand phase run command
@@ -130,8 +130,6 @@ func (c *RunCommand) RunE() error {
 		Resource: armadav1.ArmadaChartPlural,
 	})
 
-	acClient := armadav1.NewForConfigOrDie(k8sConfig)
-
 	if err := c.CheckCRD(k8sConfig); err != nil {
 		return err
 	}
@@ -146,7 +144,7 @@ func (c *RunCommand) RunE() error {
 				chp := c.airCharts[cName]
 				chpc := c.ConvertChart(chp)
 				eg.Go(func() error {
-					return c.InstallChart(chpc, resClient, acClient)
+					return c.InstallChart(chpc, resClient, k8sConfig)
 				})
 			}
 			if err := eg.Wait(); err != nil {
@@ -155,7 +153,7 @@ func (c *RunCommand) RunE() error {
 		} else {
 			for _, cName := range cg.ChartGroup {
 				klog.V(5).Infof("sequential chart install %s", cName)
-				if err = c.InstallChart(c.ConvertChart(c.airCharts[cName]), resClient, acClient); err != nil {
+				if err = c.InstallChart(c.ConvertChart(c.airCharts[cName]), resClient, k8sConfig); err != nil {
 					return err
 				}
 			}
@@ -167,7 +165,7 @@ func (c *RunCommand) RunE() error {
 func (c *RunCommand) InstallChart(
 	chart *armadav1.ArmadaChart,
 	resClient dynamic.NamespaceableResourceInterface,
-	restConfig *rest.RESTClient) error {
+	restConfig *rest.Config) error {
 
 	klog.V(5).Infof("installing chart %s %s %s", chart.GetName(), chart.Name, chart.Namespace)
 	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(chart)
@@ -200,11 +198,11 @@ func (c *RunCommand) InstallChart(
 	}
 
 	wOpts := armadawait.WaitOptions{
-		Getter:    restConfig,
-		Namespace: chart.Namespace,
+		RestConfig: restConfig,
+		Namespace:  chart.Namespace,
 		LabelSelector: fmt.Sprintf("%s=%s", armadav1.ArmadaChartLabel,
 			fmt.Sprintf("%s-%s", c.airManifest.ReleasePrefix, chart.Spec.Release)),
-		ResourceType: "armadacharts.armada.airshipit.io",
+		ResourceType: "armadacharts.armada.airshipit.org",
 		Timeout:      time.Second * time.Duration(chart.Spec.Wait.Timeout),
 		Logger:       klog.FromContext(context.Background()),
 	}
@@ -233,7 +231,7 @@ func (c *RunCommand) ConvertChart(chart *AirshipChart) *armadav1.ArmadaChart {
 
 func (c *RunCommand) CheckCRD(restConfig *rest.Config) error {
 	crdClient := apiextension.NewForConfigOrDie(restConfig)
-	if _, err := crdClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.Background(), "armadacharts.armada.airshipit.io", metav1.GetOptions{}); err != nil {
+	if _, err := crdClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.Background(), "armadacharts.armada.airshipit.org", metav1.GetOptions{}); err != nil {
 		if apierrors.IsNotFound(err) {
 			klog.V(5).Infof("armadacharts CRD not found, creating: %s", err.Error())
 			objToapp, err := c.ReadCRD()
