@@ -202,7 +202,7 @@ func (c *RunCommand) InstallChart(
 		Namespace:  chart.Namespace,
 		LabelSelector: fmt.Sprintf("%s=%s", armadav1.ArmadaChartLabel,
 			fmt.Sprintf("%s-%s", c.airManifest.ReleasePrefix, chart.Spec.Release)),
-		ResourceType: "armadacharts.armada.airshipit.org",
+		ResourceType: "armadacharts",
 		Timeout:      time.Second * time.Duration(chart.Spec.Wait.Timeout),
 		Logger:       klog.FromContext(context.Background()),
 	}
