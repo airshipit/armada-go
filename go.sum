@@ -227,8 +227,8 @@ k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9 h1:LyMgNKD2P8Wn1iAwQU5Ohx
 k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9/go.mod h1:wZK2AVp1uHCp4VamDVgBP2COHZjqD1T68Rf0CM3YjSM=
 k8s.io/utils v0.0.0-20230505201702-9f6742963106 h1:EObNQ3TW2D+WptiYXlApGNLVy0zm/JIBVY9i+M4wpAU=
 k8s.io/utils v0.0.0-20230505201702-9f6742963106/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
-opendev.org/airship/armada-operator v0.0.0-20240207165352-d557f99c8fd2 h1:rsAcpSOKKP6MdLWe/r+zi+zcx4alLjFxFYKw+CfcMPg=
-opendev.org/airship/armada-operator v0.0.0-20240207165352-d557f99c8fd2/go.mod h1:0hmfND6t5ZuyHB3R7TmsAreqzF4vfc/q3LwX18gFldI=
+opendev.org/airship/armada-operator v0.0.0-20240209183311-97033111fef5 h1:vIr0pJu1iEz3QqCJ41+pnvCvMQI9spbH5+L3pbaT8Fs=
+opendev.org/airship/armada-operator v0.0.0-20240209183311-97033111fef5/go.mod h1:0hmfND6t5ZuyHB3R7TmsAreqzF4vfc/q3LwX18gFldI=
 rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
 sigs.k8s.io/controller-runtime v0.16.3 h1:2TuvuokmfXvDUamSx1SuAOO3eTyye+47mJCigwG62c4=
 sigs.k8s.io/controller-runtime v0.16.3/go.mod h1:j7bialYoSn142nv9sCOJmQgDXQXxnroFU4VnX/brVJ0=
