@@ -15,7 +15,11 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+
 	"opendev.org/airship/armada-go/pkg/config"
 	"opendev.org/airship/armada-go/pkg/log"
 )
@@ -26,6 +30,52 @@ type RunCommand struct {
 }
 
 func Apply(c *gin.Context) {
+	if c.GetHeader("X-Identity-Status") == "Confirmed" {
+		c.JSON(200, gin.H{
+			"message": gin.H{
+				"install":   []any{},
+				"upgrade":   []any{},
+				"diff":      []any{},
+				"purge":     []any{},
+				"protected": []any{},
+			},
+		})
+	} else {
+		c.Status(401)
+	}
+}
+
+func Validate(c *gin.Context) {
+	if c.GetHeader("X-Identity-Status") == "Confirmed" {
+		c.JSON(200, gin.H{
+			"kind":       "Status",
+			"apiVersion": "v1.0",
+			"metadata":   gin.H{},
+			"reason":     "Validation",
+			"details":    gin.H{"errorCount": 0, "messageList": []any{}},
+			"status":     "Success",
+			"message":    "Armada validations succeeded",
+		})
+		c.Status(200)
+	} else {
+		c.Status(401)
+	}
+}
+
+func Releases(c *gin.Context) {
+	if c.GetHeader("X-Identity-Status") == "Confirmed" {
+		c.JSON(200, gin.H{
+			"releases": gin.H{
+				"ucp": []string{"clcp-ucp-armada"},
+			},
+		})
+	} else {
+		c.Status(401)
+	}
+}
+
+func Health(c *gin.Context) {
+	c.String(http.StatusOK, "OK")
 }
 
 // RunE runs the phase
@@ -37,6 +87,12 @@ func (c *RunCommand) RunE() error {
 
 	log.Printf("armada-go server has been started")
 	r := gin.Default()
-	r.GET("/apply", Apply)
+	r.Use(gin.Logger())
+	auth := New(viper.Sub("keystone_authtoken").GetString("auth_url"))
+
+	r.POST("/api/v1.0/apply", auth.Handler(r.Handler()), Apply)
+	r.POST("/api/v1.0/validatedesign", auth.Handler(r.Handler()), Validate)
+	r.GET("/api/v1.0/releases", auth.Handler(r.Handler()), Releases)
+	r.GET("/api/v1.0/health", Health)
 	return r.Run(":8000")
 }

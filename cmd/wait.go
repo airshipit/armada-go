@@ -16,8 +16,6 @@ package cmd
 
 import (
 	"context"
-	"strconv"
-	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
@@ -42,7 +40,6 @@ func NewWaitCommand(_ config.Factory) *cobra.Command {
 		return k8sConfig
 	}
 
-	var timeout string
 	p := &waitutil.WaitOptions{
 		RestConfig: getConfig(),
 	}
@@ -53,11 +50,6 @@ func NewWaitCommand(_ config.Factory) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p.Logger = zap.New(zap.WriteTo(cmd.OutOrStdout()), zap.ConsoleEncoder())
-			intTimeout, err := strconv.Atoi(timeout)
-			if err != nil {
-				return err
-			}
-			p.Timeout = time.Second * time.Duration(intTimeout)
 			return p.Wait(context.Background())
 		},
 	}
@@ -66,7 +58,7 @@ func NewWaitCommand(_ config.Factory) *cobra.Command {
 	flags.StringVar(&p.ResourceType, "resource-type", "", "resource type")
 	flags.StringVar(&p.Namespace, "namespace", "", "namespace")
 	flags.StringVar(&p.LabelSelector, "label-selector", "", "label selector")
-	flags.StringVar(&timeout, "timeout", "", "timeout")
+	flags.DurationVar(&p.Timeout, "timeout", 0, "timeout")
 	flags.StringVar(&p.MinReady, "min-ready", "", "min ready")
 
 	return runCmd
