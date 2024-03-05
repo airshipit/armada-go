@@ -1,9 +1,11 @@
-package server
+package auth
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +15,7 @@ import (
 	"opendev.org/airship/armada-go/pkg/log"
 )
 
-var Log func(string, ...interface{}) = func(format string, a ...interface{}) {
+var Log = func(format string, a ...interface{}) {
 	log.Printf(format, a...)
 }
 
@@ -286,4 +288,57 @@ func filterIncomingHeaders(req *http.Request) {
 	req.Header.Del("X-Tenant")
 	req.Header.Del("X-User")
 	req.Header.Del("X-Role")
+}
+
+func Authenticate() (string, error) {
+	authUrl := viper.Sub("keystone_authtoken").GetString("auth_url")
+	username := viper.Sub("keystone_authtoken").GetString("username")
+	password := viper.Sub("keystone_authtoken").GetString("password")
+	projectDomainName := viper.Sub("keystone_authtoken").GetString("project_domain_name")
+	projectName := viper.Sub("keystone_authtoken").GetString("project_name")
+	userDomainName := viper.Sub("keystone_authtoken").GetString("user_domain_name")
+
+	jsonData := []byte(fmt.Sprintf(`{
+		"auth": {
+			"identity": {
+			  "methods": ["password"],
+			  "password": {
+				"user": {
+				  "name": "%s",
+				  "domain": { "id": "%s" },
+				  "password": "%s"
+				}
+			  }
+			},
+			"scope": {
+			  "project": {
+				"name": "%s",
+				"domain": { "id": "%s" }
+			  }
+			}
+		  }
+	}`, username, userDomainName, password, projectName, projectDomainName))
+
+	req, err := http.NewRequest("POST", authUrl+"/auth/tokens", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 201 {
+		return "", errors.New("http: not authorized")
+	}
+
+	token := resp.Header.Get("X-Subject-Token")
+	if token == "" {
+		return "", errors.New("http: keystone token is empty")
+	}
+
+	return token, nil
 }

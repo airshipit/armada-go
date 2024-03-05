@@ -21,7 +21,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
+	"opendev.org/airship/armada-go/pkg/auth"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -326,9 +330,38 @@ func (c *RunCommand) ValidateManifests() error {
 
 func (c *RunCommand) ParseManifests() error {
 	klog.V(5).Infof("parsing manifests started, path: %s", c.Manifests)
-	f, err := os.Open(c.Manifests)
+
+	var f io.ReadCloser
+	u, err := url.Parse(c.Manifests)
 	if err != nil {
 		return err
+	}
+	if u.Scheme == "" {
+		f, err = os.Open(c.Manifests)
+		if err != nil {
+			return err
+		}
+	} else if u.Scheme == "deckhand+http" {
+		reg, err := regexp.Compile("^[^+]+\\+")
+		if err != nil {
+			return err
+		}
+		deckhandUrl := reg.ReplaceAllString(c.Manifests, "")
+		req, err := http.NewRequest("GET", deckhandUrl, nil)
+		if err != nil {
+			return err
+		}
+		token, err := auth.Authenticate()
+		if err != nil {
+			return err
+		}
+		req.Header.Set("X-Auth-Token", token)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		f = resp.Body
 	}
 	defer f.Close()
 
