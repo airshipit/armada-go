@@ -128,7 +128,6 @@ func (c *RunCommand) RunE() error {
 
 	log.Printf("armada-go server has been started")
 	r := gin.Default()
-	r.Use(gin.Logger())
 	auth := auth2.New(viper.Sub("keystone_authtoken").GetString("auth_url"))
 
 	buf, err := os.ReadFile("/etc/armada/policy.yaml")
@@ -147,9 +146,9 @@ func (c *RunCommand) RunE() error {
 		return err
 	}
 
-	r.POST("/api/v1.0/apply", auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:create_endpoints"), Apply)
-	r.POST("/api/v1.0/validatedesign", auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:validate_manifest"), Validate)
-	r.GET("/api/v1.0/releases", auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:get_release"), Releases)
+	r.POST("/api/v1.0/apply", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:create_endpoints"), Apply)
+	r.POST("/api/v1.0/validatedesign", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:validate_manifest"), Validate)
+	r.GET("/api/v1.0/releases", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:get_release"), Releases)
 	r.GET("/api/v1.0/health", Health)
 	return r.Run(":8000")
 }

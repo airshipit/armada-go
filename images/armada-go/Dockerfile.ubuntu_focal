@@ -1,5 +1,5 @@
 ARG FROM=ubuntu:20.04
-ARG GO_IMAGE=golang:1.20-buster
+ARG GO_IMAGE=golang:1.21-bullseye
 FROM ${GO_IMAGE} as builder
 
 ENV PATH "/usr/local/go/bin:$PATH"
