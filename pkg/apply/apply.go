@@ -18,14 +18,15 @@ import (
 	"bufio"
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"opendev.org/airship/armada-go/pkg/auth"
+	"opendev.org/airship/armada-go/pkg/log"
 	"os"
 	"regexp"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strings"
 	"time"
 
@@ -45,7 +46,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
 
 	"opendev.org/airship/armada-go/pkg/config"
@@ -102,12 +102,7 @@ type AirshipChart struct {
 
 // RunE runs the phase
 func (c *RunCommand) RunE() error {
-	klog.InitFlags(nil)
-	klog.SetOutput(c.Out)
-	if err := flag.Set("v", "5"); err != nil {
-		return err
-	}
-	klog.V(2).Infof("armada-go apply, manifests path %s", c.Manifests)
+	log.Printf("armada-go apply, manifests path %s", c.Manifests)
 
 	if err := c.ParseManifests(); err != nil {
 		return err
@@ -115,7 +110,7 @@ func (c *RunCommand) RunE() error {
 
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
-		klog.V(2).Infoln("Unable to load in-cluster kubeconfig, reason: ", err)
+		log.Printf("Unable to load in-cluster kubeconfig, reason: ", err)
 		k8sConfig, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			clientcmd.NewDefaultClientConfigLoadingRules(), &clientcmd.ConfigOverrides{}).ClientConfig()
 		if err != nil {
@@ -140,11 +135,11 @@ func (c *RunCommand) RunE() error {
 
 	for _, cgName := range c.airManifest.ChartGroups {
 		cg := c.airGroups[cgName]
-		klog.V(5).Infof("processing chart group %s, sequenced %s", cgName, cg.Sequenced)
+		log.Printf("processing chart group %s, sequenced %s", cgName, cg.Sequenced)
 		if !cg.Sequenced {
 			eg := errgroup.Group{}
 			for _, cName := range cg.ChartGroup {
-				klog.V(5).Infof("adding 1 chart to wg %s", cName)
+				log.Printf("adding 1 chart to wg %s", cName)
 				chp := c.airCharts[cName]
 				chpc := c.ConvertChart(chp)
 				eg.Go(func() error {
@@ -156,7 +151,7 @@ func (c *RunCommand) RunE() error {
 			}
 		} else {
 			for _, cName := range cg.ChartGroup {
-				klog.V(5).Infof("sequential chart install %s", cName)
+				log.Printf("sequential chart install %s", cName)
 				if err = c.InstallChart(c.ConvertChart(c.airCharts[cName]), resClient, k8sConfig); err != nil {
 					return err
 				}
@@ -171,7 +166,7 @@ func (c *RunCommand) InstallChart(
 	resClient dynamic.NamespaceableResourceInterface,
 	restConfig *rest.Config) error {
 
-	klog.V(5).Infof("installing chart %s %s %s", chart.GetName(), chart.Name, chart.Namespace)
+	log.Printf("installing chart %s %s %s", chart.GetName(), chart.Name, chart.Namespace)
 	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(chart)
 	if err != nil {
 		return err
@@ -179,26 +174,26 @@ func (c *RunCommand) InstallChart(
 
 	if oldObj, err := resClient.Namespace(chart.Namespace).Get(
 		context.Background(), chart.GetName(), metav1.GetOptions{}); err != nil {
-		klog.V(5).Infof("unable to get chart %s: %s, creating", chart.Name, err.Error())
+		log.Printf("unable to get chart %s: %s, creating", chart.Name, err.Error())
 		if _, err = resClient.Namespace(chart.Namespace).Create(
 			context.Background(), &unstructured.Unstructured{Object: obj}, metav1.CreateOptions{}); err != nil {
 			return err
 		}
-		klog.V(5).Infof("chart has been successfully created %s", chart.Name)
+		log.Printf("chart has been successfully created %s", chart.Name)
 	} else {
 		uObj := &unstructured.Unstructured{Object: obj}
 		uObj.SetResourceVersion(oldObj.GetResourceVersion())
-		klog.V(5).Infof("chart %s was found, updating", chart.Name)
+		log.Printf("chart %s was found, updating", chart.Name)
 		if _, err = resClient.Namespace(chart.Namespace).Update(
 			context.Background(), uObj, metav1.UpdateOptions{}); err != nil {
-			klog.V(5).Infof("resource update error: %s", err.Error())
+			log.Printf("resource update error: %s", err.Error())
 			if strings.Contains(err.Error(), "the object has been modified") {
-				klog.V(5).Infof("resource expired, retrying %s", err.Error())
+				log.Printf("resource expired, retrying %s", err.Error())
 				return c.InstallChart(chart, resClient, restConfig)
 			}
 			return err
 		}
-		klog.V(5).Infof("chart has been successfully updated %s", chart.Name)
+		log.Printf("chart has been successfully updated %s", chart.Name)
 	}
 
 	wOpts := armadawait.WaitOptions{
@@ -208,11 +203,11 @@ func (c *RunCommand) InstallChart(
 			fmt.Sprintf("%s-%s", c.airManifest.ReleasePrefix, chart.Spec.Release)),
 		ResourceType: "armadacharts",
 		Timeout:      time.Second * time.Duration(chart.Spec.Wait.Timeout),
-		Logger:       klog.FromContext(context.Background()),
+		Logger:       zap.New(zap.WriteTo(c.Out), zap.ConsoleEncoder()),
 	}
 
 	err = wOpts.Wait(context.Background())
-	klog.V(5).Infof("finished with chart %s", chart.GetName())
+	log.Printf("finished with chart %s", chart.GetName())
 	return err
 }
 
@@ -237,14 +232,14 @@ func (c *RunCommand) CheckCRD(restConfig *rest.Config) error {
 	crdClient := apiextension.NewForConfigOrDie(restConfig)
 	if _, err := crdClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.Background(), "armadacharts.armada.airshipit.org", metav1.GetOptions{}); err != nil {
 		if apierrors.IsNotFound(err) {
-			klog.V(5).Infof("armadacharts CRD not found, creating: %s", err.Error())
+			log.Printf("armadacharts CRD not found, creating: %s", err.Error())
 			objToapp, err := c.ReadCRD()
 			if err != nil {
 				return err
 			}
 			_, err = crdClient.ApiextensionsV1().CustomResourceDefinitions().Create(context.Background(), objToapp, metav1.CreateOptions{})
 			if err != nil {
-				klog.V(5).Infof("error while creating crd %t", err)
+				log.Printf("error while creating crd %t", err)
 				return err
 			}
 		} else {
@@ -287,10 +282,10 @@ func (c *RunCommand) VerifyNamespaces(rsc *rest.Config) error {
 		}
 	}
 	for k, _ := range namespaces {
-		klog.V(5).Infof("processing namespace %s", k)
+		log.Printf("processing namespace %s", k)
 		if _, err := cs.CoreV1().Namespaces().Get(context.Background(), k, metav1.GetOptions{}); err != nil {
 			if apierrors.IsNotFound(err) {
-				klog.V(5).Infof("namespace %s not found, creating", k)
+				log.Printf("namespace %s not found, creating", k)
 				if _, err = cs.CoreV1().Namespaces().Create(context.Background(), &v1.Namespace{
 					ObjectMeta: metav1.ObjectMeta{Name: k}}, metav1.CreateOptions{}); err != nil {
 					return err
@@ -300,7 +295,7 @@ func (c *RunCommand) VerifyNamespaces(rsc *rest.Config) error {
 			}
 		}
 	}
-	klog.V(5).Infof("all namespaces validated successfully")
+	log.Printf("all namespaces validated successfully")
 	return nil
 }
 
@@ -324,12 +319,12 @@ func (c *RunCommand) ValidateManifests() error {
 			return errors.New(fmt.Sprintf("no group document with name %s found", cgname))
 		}
 	}
-	klog.V(5).Infof("all airship manifests validated successfully")
+	log.Printf("all airship manifests validated successfully")
 	return nil
 }
 
 func (c *RunCommand) ParseManifests() error {
-	klog.V(5).Infof("parsing manifests started, path: %s", c.Manifests)
+	log.Printf("parsing manifests started, path: %s", c.Manifests)
 
 	var f io.ReadCloser
 	u, err := url.Parse(c.Manifests)
@@ -378,7 +373,7 @@ func (c *RunCommand) ParseManifests() error {
 		}
 		var typeMeta AirshipDocument
 		if err := yaml.Unmarshal(buf, &typeMeta); err != nil {
-			klog.V(2).Infof("unmarshalling error %s, continuing...", err.Error())
+			log.Printf("unmarshalling error %s, continuing...", err.Error())
 			continue
 		}
 
@@ -389,7 +384,7 @@ func (c *RunCommand) ParseManifests() error {
 				if err := yaml.Unmarshal(buf, &airManifest); err != nil {
 					return err
 				}
-				klog.V(2).Infof("found airship manifest %s", airManifest.Metadata.Name)
+				log.Printf("found airship manifest %s", airManifest.Metadata.Name)
 				c.airManifest = &airManifest
 			}
 		}

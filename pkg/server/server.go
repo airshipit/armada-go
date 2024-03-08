@@ -17,12 +17,12 @@ package server
 import (
 	"fmt"
 	policy "github.com/databus23/goslo.policy"
+	"github.com/databus23/keystone"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 	"net/http"
 	"opendev.org/airship/armada-go/pkg/apply"
-	auth2 "opendev.org/airship/armada-go/pkg/auth"
 	"opendev.org/airship/armada-go/pkg/config"
 	"opendev.org/airship/armada-go/pkg/log"
 	"os"
@@ -39,16 +39,30 @@ type JsonDataRequest struct {
 	Overrides []any  `json:"overrides"`
 }
 
-func PolicyEnforcer(enforcer *policy.Enforcer, rule string) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		ctx := policy.Context{
-			Roles:  strings.Split(context.GetHeader("X-Roles"), ","),
-			Logger: log.Printf,
-		}
-		if enforcer.Enforce(rule, ctx) {
-			context.Next()
+func Enforcer(enforcer *policy.Enforcer, rule string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Identity-Status") != "Confirmed" {
+			w.WriteHeader(401)
+			_, _ = fmt.Fprint(w, "Invalid or no token provided")
 		} else {
-			context.String(401, "oslo policy error")
+			ctx := policy.Context{
+				Roles:  strings.Split(r.Header.Get("X-Roles"), ","),
+				Logger: log.Printf,
+			}
+			if !enforcer.Enforce(rule, ctx) {
+				w.WriteHeader(401)
+				_, _ = fmt.Fprint(w, "Oslo policy error")
+			}
+			log.Printf("Request from authenticated user %s with roles %s", r.Header.Get("X-User-Name"), r.Header.Get("X-Roles"))
+		}
+	}
+}
+
+func Authenticator(h http.Handler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+		if c.Writer.Status() == 401 {
+			c.Abort()
 		}
 	}
 }
@@ -127,8 +141,10 @@ func (c *RunCommand) RunE() error {
 	}
 
 	log.Printf("armada-go server has been started")
-	r := gin.Default()
-	auth := auth2.New(viper.Sub("keystone_authtoken").GetString("auth_url"))
+	r := gin.New()
+	r.Use(gin.Recovery())
+
+	auth := keystone.New(viper.Sub("keystone_authtoken").GetString("auth_url"))
 
 	buf, err := os.ReadFile("/etc/armada/policy.yaml")
 	if err != nil {
@@ -146,9 +162,9 @@ func (c *RunCommand) RunE() error {
 		return err
 	}
 
-	r.POST("/api/v1.0/apply", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:create_endpoints"), Apply)
-	r.POST("/api/v1.0/validatedesign", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:validate_manifest"), Validate)
-	r.GET("/api/v1.0/releases", gin.Logger(), auth.Handler(r.Handler()), PolicyEnforcer(enf, "armada:get_release"), Releases)
+	r.POST("/api/v1.0/apply", gin.Logger(), Authenticator(auth.Handler(Enforcer(enf, "armada:create_endpoints"))), Apply)
+	r.POST("/api/v1.0/validatedesign", gin.Logger(), Authenticator(auth.Handler(Enforcer(enf, "armada:validate_manifest"))), Validate)
+	r.GET("/api/v1.0/releases", gin.Logger(), Authenticator(auth.Handler(Enforcer(enf, "armada:get_release"))), Releases)
 	r.GET("/api/v1.0/health", Health)
 	return r.Run(":8000")
 }

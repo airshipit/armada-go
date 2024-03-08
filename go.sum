@@ -8,6 +8,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46t
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/databus23/goslo.policy v0.0.0-20210929125152-81bf2876dbdb h1:8JB2G8t3o1iCL8vCzssUj2Nn2qjqSab2/G3xXhvkpPQ=
 github.com/databus23/goslo.policy v0.0.0-20210929125152-81bf2876dbdb/go.mod h1:tRj172JgwQmUmEqZZJBWzYWFStitMFTtb95NtUnmpkw=
+github.com/databus23/keystone v0.0.0-20180111110916-350fd0e663cd h1:OptdAs3t90tBs6w+lAJVVhBQj3/gqHh1tAQQBL5r08M=
+github.com/databus23/keystone v0.0.0-20180111110916-350fd0e663cd/go.mod h1:TtJx0X0i4vIrVWmEEDScoV1pI2IRk0xnLSOdkBOSNgQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
