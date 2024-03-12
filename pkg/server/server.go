@@ -130,7 +130,7 @@ func Releases(c *gin.Context) {
 }
 
 func Health(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
+	c.String(http.StatusNoContent, "OK")
 }
 
 // RunE runs the phase
