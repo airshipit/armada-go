@@ -104,7 +104,7 @@
       CLONE_ARMADA_GO: false
       DISTRO: ubuntu_focal
       DOCKER_REGISTRY: localhost:5000
-      MAKE_ARMADA_OPERATOR_IMAGES: true
+      MAKE_ARMADA_GO_IMAGES: true
       USE_ARMADA_GO: true
       gate_scripts_relative_path: ../../airship/treasuremap
       gate_scripts:
