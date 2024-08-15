@@ -59,6 +59,8 @@ type RunCommand struct {
 	Manifests      string
 	TargetManifest string
 	Out            io.Writer
+	Installed      *[]string
+	Updated        *[]string
 
 	airManifest *AirshipManifest
 	airGroups   map[string]*AirshipChartGroup
@@ -167,6 +169,8 @@ func (c *RunCommand) InstallChart(
 	restConfig *rest.Config) error {
 
 	log.Printf("installing chart %s %s %s", chart.GetName(), chart.Name, chart.Namespace)
+	updated := false
+	var prevGen int64
 	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(chart)
 	if err != nil {
 		return err
@@ -181,6 +185,7 @@ func (c *RunCommand) InstallChart(
 		}
 		log.Printf("chart has been successfully created %s", chart.Name)
 	} else {
+		prevGen = oldObj.GetGeneration()
 		uObj := &unstructured.Unstructured{Object: obj}
 		uObj.SetResourceVersion(oldObj.GetResourceVersion())
 		log.Printf("chart %s was found, updating", chart.Name)
@@ -194,6 +199,7 @@ func (c *RunCommand) InstallChart(
 			return err
 		}
 		log.Printf("chart has been successfully updated %s", chart.Name)
+		updated = true
 	}
 
 	wOpts := armadawait.WaitOptions{
@@ -208,6 +214,20 @@ func (c *RunCommand) InstallChart(
 
 	err = wOpts.Wait(context.Background())
 	log.Printf("finished with chart %s", chart.GetName())
+	if !updated && c.Installed != nil {
+		*c.Installed = append(*c.Installed, chart.Name)
+	} else if updated && c.Updated != nil {
+		if updObj, err := resClient.Namespace(chart.Namespace).Get(
+			context.Background(), chart.GetName(), metav1.GetOptions{}); err != nil {
+			log.Printf("unable to get current generation of chart %s: %s", chart.Name, err.Error())
+		} else {
+			newGen := updObj.GetGeneration()
+			// Chart actually has been updated
+			if newGen > prevGen {
+				*c.Updated = append(*c.Updated, chart.Name)
+			}
+		}
+	}
 	return err
 }
 

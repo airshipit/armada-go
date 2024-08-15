@@ -77,7 +77,10 @@ func Apply(c *gin.Context) {
 				return
 			}
 
-			runOpts := apply.RunCommand{Manifests: dataReq.Href, TargetManifest: targetManifest, Out: os.Stdout}
+			installed := make([]string, 0)
+			updated := make([]string, 0)
+			runOpts := apply.RunCommand{Manifests: dataReq.Href, TargetManifest: targetManifest, Out: os.Stdout,
+				Installed: &installed, Updated: &updated}
 			if err := runOpts.RunE(); err != nil {
 				c.String(500, "apply error", err.Error())
 				return
@@ -85,8 +88,8 @@ func Apply(c *gin.Context) {
 
 			c.JSON(200, gin.H{
 				"message": gin.H{
-					"install":   []any{},
-					"upgrade":   []any{},
+					"install":   installed,
+					"upgrade":   updated,
 					"diff":      []any{},
 					"purge":     []any{},
 					"protected": []any{},
