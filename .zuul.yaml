@@ -14,7 +14,8 @@
     check:
       jobs:
         - armada-go-docker-build-gate-ubuntu_focal
-        - armada-go-airskiff-deployment-focal
+        # disable for now until jammy jobs are configured
+        #- armada-go-airskiff-deployment-focal
 
     gate:
       jobs:
