@@ -37,7 +37,7 @@
     OSH_INFRA_COMMIT: "{{ OSH_INFRA_COMMIT | default('cfff60ec10a6c386f38db79bb9f59a552c2b032f') }}"
     OSH_COMMIT: "{{ OSH_COMMIT | default('2d9457e34ca4200ed631466bd87569b0214c92e7') }}"
     COREDNS_VERSION: "{{ coredns_version | default('v1.11.1') }}"
-    DISTRO: "{{ DISTRO | default('ubuntu_focal') }}"
+    DISTRO: "{{ DISTRO | default('ubuntu_jammy') }}"
     DOCKER_REGISTRY: "{{ DOCKER_REGISTRY | default('quay.io') }}"
     CLONE_ARMADA: "{{ CLONE_ARMADA | default('true') }}"
     CLONE_ARMADA_GO: "{{ CLONE_ARMADA_GO | default('true') }}"

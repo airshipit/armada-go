@@ -1,5 +1,5 @@
-ARG FROM=public.ecr.aws/ubuntu/ubuntu:focal
-ARG GO_IMAGE=public.ecr.aws/docker/library/golang:1.21.1-bullseye
+ARG FROM=quay.io/airshipit/ubuntu:focal
+ARG GO_IMAGE=quay.io/airshipit/golang:1.21.1-bullseye
 FROM ${GO_IMAGE} as builder
 
 ENV PATH "/usr/local/go/bin:$PATH"
