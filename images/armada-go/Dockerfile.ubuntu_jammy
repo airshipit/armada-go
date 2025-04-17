@@ -1,8 +1,8 @@
 ARG FROM=quay.io/airshipit/ubuntu:jammy
-ARG GO_IMAGE=quay.io/airshipit/golang:1.23.5-bullseye
+ARG GO_IMAGE=quay.io/airshipit/golang:1.23.8-bullseye
 FROM ${GO_IMAGE} AS builder
 
-ENV PATH "/usr/local/go/bin:$PATH"
+ENV PATH="/usr/local/go/bin:$PATH"
 ENV CGO_ENABLED=0
 WORKDIR /go/src/
 COPY go.mod /go.sum ./
@@ -28,6 +28,18 @@ EXPOSE 8000
 WORKDIR /armada
 COPY --from=builder /usr/local/bin/armada-go /usr/local/bin/armada
 COPY crd.yaml /armada/crd.yaml
+
+RUN apt update -qq && apt upgrade -y \
+      && apt autoremove -yqq --purge \
+      && apt clean \
+      && rm -rf \
+      /tmp/* \
+      /usr/share/doc \
+      /usr/share/doc-base \
+      /usr/share/man \
+      /var/lib/apt/lists/* \
+      /var/log/* \
+      /var/tmp/*
 
 # Add armada user
 RUN useradd -u 1000 -g users -d $(pwd) armada
