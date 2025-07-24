@@ -1,5 +1,5 @@
 ARG FROM=quay.io/airshipit/ubuntu:jammy
-ARG GO_IMAGE=quay.io/airshipit/golang:1.23.8-bullseye
+ARG GO_IMAGE=quay.io/airshipit/golang:1.24.5-bullseye
 FROM ${GO_IMAGE} AS builder
 
 ENV PATH="/usr/local/go/bin:$PATH"
