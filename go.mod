@@ -1,6 +1,6 @@
 module opendev.org/airship/armada-go
 
-go 1.24.5
+go 1.24.6
 
 require (
 	github.com/databus23/goslo.policy v0.0.0-20210929125152-81bf2876dbdb
