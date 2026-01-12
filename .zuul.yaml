@@ -72,7 +72,7 @@
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-go-single-node-jammy
     secrets:
-      - airship_armada_go_quay_creds
+      - airship_armada_go_quay_creds_2026
     vars:
       publish: true
       distro: ubuntu_jammy
@@ -109,3 +109,29 @@
           a4xPhx6s7B1J6wq0P14ADGl5/0CmzeZ3uGw94PRGvg8YAWswUV/DXWogbOH/EEStdsOia
           JaXpU/oVkmC5NcIp3A+6F3NCft8gQCTKecoFBt9/7suvjmCIY9y26SBQ0gOHEjbUzfikT
           FuwYIUDaaLDU+Dz+PfdrKSM63O/uBhrDO+yo+ovqu5PPLksBu42sOrZleAbZIA=
+
+- secret:
+    name: airship_armada_go_quay_creds_2026
+    data:
+      username: !encrypted/pkcs1-oaep
+        - bU+eVVz84meV9S5PdjmuhE7Hk3CuYdn6Ewr1A+qboTH+Jil2DYmfK4v70K9J7SiepfZ2d
+          0thpgiqcH+7MDMLCbJuGbUxiP3eXKtLH36gwggtnNkaTNkhGWd2roe06j8pTxEcp0tSi1
+          d0hKBoL02Pnn/qio7fGrCqXRGs/bP5B8U0xmERkQjsN0mKnFpBeUi7gY9+WnLGYX9nVlA
+          fVxYl4Vo1xs4SaIQUim3HrXVur4512UkRWUPCMC4pqff3mkfECY4oU+yqMUG0KN5R8YhD
+          I2GEvVljaVzlnZthRCn0QY0VymFHQkEJd5BgVB0hexh6fLdYUbx5KPgD/rJU4nJOTdens
+          akrD7Ds5gjs+fA/Qy/QwcjtMq4tJPVmjzuXN1m+7EtN9PpJbHI0SwPztpRrfUxp7RGFc1
+          z8Cr3FHEukzF5gHqZSTyuHptJrQpqhvJi9ELj4MIcRqqaMGWZuDR6harvBTZGxRgOv4fP
+          bWNDsEyPto1dBUxHdYfrGKT+XY4whT3pY19V/1ZhnUFmj/DQjpQTIGABtVm5tmelShl90
+          b9VKRKnT4T5f972U34KAAoWeUCdk+Q/+COoIWIYPN+mKunYNWjNAL/zn9KEAz9ZmYhz6Q
+          R7IXJp2E60sN4tsJwDiLALKRSZP0WK1svpCzCuz28upoHxDxNjoJIMB2KqBLAs=
+      password: !encrypted/pkcs1-oaep
+        - I/kkSJG7gEF0FgFBrVAcwhXRM/3Y+PaPRVjCpJBe+iWrhYcTj1aRvtpQ6PW3b7PVYuWfb
+          nh3c0YGNqkFXuem2axFAuP2Sm4q/AIbLpavHFah6SKQwB67GQU4Y5GxFjw17TsJTvbALJ
+          y3i+9z6UXwmSN2Fz7I8TcdrAV8gXv7W/xdKJdgQwJMP+B3PQbpwHCRBfvgNn2oThzg3Xd
+          7k3q2At3JhggdOl1CgN3YxzAjCv6aAFazWLmRi7xoGaD06YZcx+Nm2h5WDNM6XgpJkTii
+          oF5Fpv0ZG9wm2xsDq8v5VDp8l+s7IIAkfZBFGid/oru4oLPdgkd/m2bYgL2Jb9AUfA/Sg
+          oeuhsTLu2zbCO/u1lEMK5hiqtK3wgd0vWD0iV/ocUegHl183kyHQL76qKow80YgSvsqPn
+          7YEJlqxgzbJgHUI57nsqPHLDDHBXChHywc1S7bkLKAYgDHQDca8Zv6Eoy2H9xT1vxIp8e
+          RTTY6X93KdMcKILiqKzeax8lHcxa3cIYyYvofxkrMrAro+SUGTwgOTiNJUajx7FNpx0L2
+          w1N0QJFC6RzcP1XrLSSi6VJvou3Y2eYihjLIrpqa1E47Cr1OwHMyhBkQgQ2KZ11b5keLM
+          WfrNRafsLiYOj2Ztpm+gr9bhYsFRliE8ZLcUkaW+5JKr2mkkMNeORnA0WsXR4c=
