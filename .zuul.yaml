@@ -22,6 +22,7 @@
 
     post:
       jobs:
+        - armada-go-upload-git-mirror
         - armada-go-docker-publish-ubuntu_jammy
 
 
@@ -135,3 +136,32 @@
           RTTY6X93KdMcKILiqKzeax8lHcxa3cIYyYvofxkrMrAro+SUGTwgOTiNJUajx7FNpx0L2
           w1N0QJFC6RzcP1XrLSSi6VJvou3Y2eYihjLIrpqa1E47Cr1OwHMyhBkQgQ2KZ11b5keLM
           WfrNRafsLiYOj2Ztpm+gr9bhYsFRliE8ZLcUkaW+5JKr2mkkMNeORnA0WsXR4c=
+
+- job:
+    name: armada-go-upload-git-mirror
+    parent: upload-git-mirror
+    description: Mirrors airship/armada-go to airshipit/armada-go
+    vars:
+      git_mirror_repository: airshipit/armada-go
+    secrets:
+      - name: git_mirror_credentials
+        secret: armada-go-airshipit-github-ed25519-secret-2026-01-13
+        pass-to-parent: true
+
+- secret:
+    name: armada-go-airshipit-github-ed25519-secret-2026-01-13
+    data:
+      user: git
+      host: github.com
+      host_key: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+      ssh_key: !encrypted/pkcs1-oaep
+        - P5GpdUZAN4d3+/faH6QRvByGZc5vqhj1+zg9WOwjO5Py2y0w20hrTr/GX+sCNnAffVh52
+          3SPD3ehxH3dUaKDO1ljjhCzDPo7BGXh2zr43M2gHz8OFTsApVUqp7XzpeKWypZDtPol/B
+          jfZepO5HIHkq0FzTH9yqxD826CPjpbBCU/PDdbZ1t8imZmI9V/OGm044nG5fk5O859qPQ
+          LZxvz0lCHnkFit9EW4AH8CQYcMThBqxLr/8MO7eT+vkopoOGLjqW86goJK+PiruOwNP5r
+          N6o7fyo0TyNCy8ttpHmm8/8BeXH11TaMsBaoNqp2SUm4yqBWRRvKd0xsFjfgNZWL+Ia6Q
+          Qni5KEYkE8kICbD/LlM1kUmwnUe+FXLdtjm00ePwMzlA/21gqwxCASG6RZpzMc8aEwg/Q
+          2E+cGpirtM5kSFz281LsZeJ0hhhD3jKtjoXmhwyD6+XuP6peQMazZVYWQ6rvGtmhyinWy
+          7OzzuXp4lgmQq6wo4S0uxO8a4U6xyDm4vdxEGV1AcouNW1NvOp03ETpML1mOTgU5GfUPi
+          uXhQJBpVcOnB0bSzstmats2VVrXjYeZWoWDnoAzMyma3X5eY+SVExLYofmHS/i0W84c9u
+          JdyAPHQKpNlbW3S+RAdzsSdWrcD3moXZDglLnQCPTFHtUZMvvoLf6M7zg9lb24=
