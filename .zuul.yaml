@@ -21,6 +21,7 @@
     gate:
       jobs:
         - armada-go-docker-build-gate-ubuntu_jammy
+        - armada-go-docker-build-gate-ubuntu_noble
 
     post:
       jobs:
@@ -30,10 +31,10 @@
 
 
 - nodeset:
-    name: armada-go-single-node-focal
+    name: armada-go-single-node-noble
     nodes:
       - name: primary
-        label: ubuntu-focal
+        label: ubuntu-noble
 
 - nodeset:
     name: armada-go-single-node-jammy
@@ -56,6 +57,7 @@
       MAKE_ARMADA_GO_IMAGES: true
       USE_ARMADA_GO: true
       DISTRO: ubuntu_jammy
+      DOCKER_REGISTRY: localhost:5000
       gate_scripts_relative_path: ../../airship/treasuremap
 
 - job:
@@ -73,6 +75,7 @@
       MAKE_ARMADA_GO_IMAGES: true
       USE_ARMADA_GO: true
       DISTRO: ubuntu_noble
+      DOCKER_REGISTRY: localhost:5000
       gate_scripts_relative_path: ../../airship/treasuremap
 
 - job:

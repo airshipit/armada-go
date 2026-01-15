@@ -42,7 +42,8 @@ RUN apt update -qq && apt upgrade -y \
       /var/tmp/*
 
 # Add armada user
-RUN useradd -u 1001 -g users -d $(pwd) armada
+RUN groupmod -n armada ubuntu \
+      && usermod -l armada -d $(pwd) ubuntu
 
 ENTRYPOINT ["/usr/local/bin/armada"]
 CMD ["server"]
