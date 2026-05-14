@@ -112,7 +112,7 @@ func (c *RunCommand) RunE() error {
 
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
-		log.Printf("Unable to load in-cluster kubeconfig, reason: ", err)
+		log.Printf("Unable to load in-cluster kubeconfig, reason: %v", err)
 		k8sConfig, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			clientcmd.NewDefaultClientConfigLoadingRules(), &clientcmd.ConfigOverrides{}).ClientConfig()
 		if err != nil {
@@ -137,7 +137,7 @@ func (c *RunCommand) RunE() error {
 
 	for _, cgName := range c.airManifest.ChartGroups {
 		cg := c.airGroups[cgName]
-		log.Printf("processing chart group %s, sequenced %s", cgName, cg.Sequenced)
+		log.Printf("processing chart group %s, sequenced %v", cgName, cg.Sequenced)
 		if !cg.Sequenced {
 			eg := errgroup.Group{}
 			for _, cName := range cg.ChartGroup {
