@@ -78,6 +78,7 @@
     secrets:
       - name: quay_creds
         secret: airship_armada_go_quay_creds_2026
+        pass-to-parent: true
     vars:
       publish: true
       distro: ubuntu_noble
