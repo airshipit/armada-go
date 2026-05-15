@@ -32,7 +32,6 @@
       - name: primary
         label: ubuntu-noble
 
-
 - job:
     name: armada-go-airskiff-deployment-noble
     description: |
