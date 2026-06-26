@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/spf13/viper"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
+	"opendev.org/airship/armada-go/pkg/config"
 	"opendev.org/airship/armada-go/pkg/log"
 )
 
@@ -291,12 +291,12 @@ func filterIncomingHeaders(req *http.Request) {
 }
 
 func Authenticate() (string, error) {
-	authUrl := viper.Sub("keystone_authtoken").GetString("auth_url")
-	username := viper.Sub("keystone_authtoken").GetString("username")
-	password := viper.Sub("keystone_authtoken").GetString("password")
-	projectDomainName := viper.Sub("keystone_authtoken").GetString("project_domain_name")
-	projectName := viper.Sub("keystone_authtoken").GetString("project_name")
-	userDomainName := viper.Sub("keystone_authtoken").GetString("user_domain_name")
+	authUrl := config.V.Sub("keystone_authtoken").GetString("auth_url")
+	username := config.V.Sub("keystone_authtoken").GetString("username")
+	password := config.V.Sub("keystone_authtoken").GetString("password")
+	projectDomainName := config.V.Sub("keystone_authtoken").GetString("project_domain_name")
+	projectName := config.V.Sub("keystone_authtoken").GetString("project_name")
+	userDomainName := config.V.Sub("keystone_authtoken").GetString("user_domain_name")
 
 	jsonData := []byte(fmt.Sprintf(`{
 		"auth": {

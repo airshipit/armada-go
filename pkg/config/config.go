@@ -13,10 +13,16 @@
 package config
 
 import (
+	"fmt"
+
+	"github.com/go-viper/encoding/ini"
 	"github.com/spf13/viper"
 
 	"opendev.org/airship/armada-go/pkg/log"
 )
+
+// V is the initialized Viper instance populated from the armada config file.
+var V *viper.Viper
 
 // Config holds the information required by armada-go commands
 type Config struct{}
@@ -36,12 +42,20 @@ func CreateFactory(armadaConfigPath *string) Factory {
 	}
 }
 
-// InitConfig reads an armada config from the default cfg file
 func initConfig() error {
-	viper.SetConfigFile("/etc/armada/armada.conf")
-	viper.SetConfigType("ini")
-	if err := viper.ReadInConfig(); err != nil {
-		return err
+	codecRegistry := viper.NewCodecRegistry()
+	if err := codecRegistry.RegisterCodec("ini", ini.Codec{}); err != nil {
+		return fmt.Errorf("while registering INI codec: %w", err)
 	}
+
+	v := viper.NewWithOptions(viper.WithCodecRegistry(codecRegistry))
+	v.SetConfigFile("/etc/armada/armada.conf")
+	v.SetConfigType("ini")
+
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("while reading config: %w", err)
+	}
+
+	V = v
 	return nil
 }

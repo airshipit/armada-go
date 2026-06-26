@@ -19,7 +19,6 @@ import (
 	policy "github.com/databus23/goslo.policy"
 	"github.com/databus23/keystone"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 	"net/http"
 	"opendev.org/airship/armada-go/pkg/apply"
@@ -147,7 +146,7 @@ func (c *RunCommand) RunE() error {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
-	auth := keystone.New(viper.Sub("keystone_authtoken").GetString("auth_url"))
+	auth := keystone.New(config.V.Sub("keystone_authtoken").GetString("auth_url"))
 
 	buf, err := os.ReadFile("/etc/armada/policy.yaml")
 	if err != nil {
