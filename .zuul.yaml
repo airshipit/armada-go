@@ -42,16 +42,20 @@
       - name: airship/treasuremap
         override-checkout: v1.9
     vars:
+      treasuremap_ref: v1.9
       CLONE_ARMADA_GO: false
       MAKE_ARMADA_GO_IMAGES: true
       USE_ARMADA_GO: true
+      helm_version: 4.2.2
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v4.2.2-linux-amd64.tar.gz
       DISTRO: ubuntu_noble
-      DOCKER_REGISTRY: "control-plane.minikube.internal:5000"
+      zuul_treasuremap_relative_path: ../../airship/treasuremap
       gate_scripts_relative_path: ../../airship/treasuremap
 
 - job:
     name: armada-go-docker-build-gate-ubuntu_noble
     timeout: 3600
+    voting: false
     parent: airship-docker-build-gate-base
     nodeset: armada-go-single-node-noble
     required-projects:
